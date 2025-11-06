@@ -13,4 +13,34 @@ class Controller {
 
 
     }
+
+    // Authentication helpers
+    protected function isAuthenticated(): bool {
+        return isset($_SESSION['user']) && !empty($_SESSION['user']['id']);
+    }
+
+    protected function getUser(): ?array {
+        return $_SESSION['user'] ?? null;
+    }
+
+    protected function requireAuth() {
+        if (!$this->isAuthenticated()) {
+            header('Location: /login');
+            exit();
+        }
+    }
+
+    protected function isAdmin(): bool {
+        $user = $this->getUser();
+        return $user && isset($user['role']) && $user['role'] === 'admin';
+    }
+
+    protected function requireAdmin() {
+        $this->requireAuth();
+        if (!$this->isAdmin()) {
+            http_response_code(403);
+            echo "403 - Accès refusé";
+            exit();
+        }
+    }
 }

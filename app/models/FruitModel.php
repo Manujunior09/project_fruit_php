@@ -34,15 +34,37 @@ class FruitModel {
     }
 
     public function updateFruit($id, $fruit) {
+        $db = $this->connexion->connect();
+
+        $fields = [
+            'nom' => $fruit['nom'],
+            'prix' => $fruit['prix'],
+            'description' => $fruit['description'],
+            'pouvoir' => $fruit['pouvoir'] ?? null,
+            'origine' => $fruit['origine'] ?? null,
+        ];
+
+        // On ajoute le champ 'image' à la mise à jour SEULEMENT si un nouveau nom d'image est fourni
+        if (isset($fruit['image'])) {
+            $fields['image'] = $fruit['image'];
+        }
+
+        $setClauses = [];
+        foreach (array_keys($fields) as $field) {
+            $setClauses[] = "$field = :$field";
+        }
+        $sql = "UPDATE fruits SET " . implode(', ', $setClauses) . " WHERE id = :id";
+        $stmt = $db->prepare($sql);
+        $fields['id'] = $id; // Ajouter l'ID pour le WHERE
+        $stmt->execute($fields);
+        return $stmt->rowCount();
 
     }
 
     public function deleteFruit($id) {
-
+        $db = $this->connexion->connect();
+        $stmt = $db->prepare("DELETE FROM fruits WHERE id = :id");
+        $stmt->execute(['id' => $id]);
+        return $stmt->rowCount();
     }
-
-
-
-
-
 }
