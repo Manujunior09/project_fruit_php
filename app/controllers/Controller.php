@@ -38,9 +38,25 @@ class Controller {
     protected function requireAdmin() {
         $this->requireAuth();
         if (!$this->isAdmin()) {
+            // Afficher la page 403 en utilisant la vue pour conserver le layout
             http_response_code(403);
-            echo "403 - Accès refusé";
+            $this->view('errors/403', ['title' => 'Accès refusé']);
             exit();
         }
+    }
+
+    // Flash message helpers
+    protected function setFlash(string $type, string $message): void {
+        if (!isset($_SESSION['flash'])) {
+            $_SESSION['flash'] = [];
+        }
+        if (!isset($_SESSION['flash'][$type])) {
+            $_SESSION['flash'][$type] = [];
+        }
+        $_SESSION['flash'][$type][] = $message;
+    }
+
+    protected function clearFlashes(): void {
+        unset($_SESSION['flash']);
     }
 }

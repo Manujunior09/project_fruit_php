@@ -21,11 +21,13 @@ $title = "Détail du Fruit";
                 </div>
                 
                 <div class="action-buttons">
-                    <a href="/fruits/<?= $fruit['id'] ?>/edit" class="btn btn--primary">Modifier</a>
-                    <form method="POST" action="/fruits/<?= $fruit['id'] ?>/delete" style="display: inline;" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer ce fruit ?');">
-                        <button type="submit" class="btn btn--outline">Supprimer</button>
-                    </form>
-                    <a href="/" class="btn btn--secondary">Retour</a>
+                    <?php if (isset($_SESSION['user']) && $_SESSION['user']['role'] === 'admin'): ?>
+                        <a href="/fruits/<?= $fruit['id'] ?>/edit" class="btn btn-primary">Modifier</a>
+                        <form method="POST" action="/fruits/<?= $fruit['id'] ?>/delete" style="display: inline;" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer ce fruit ?');">
+                            <button type="submit" class="btn btn-danger">Supprimer</button>
+                        </form>
+                    <?php endif; ?>
+                    <a href="/" class="btn btn-secondary">Retour</a>
                 </div>
             </div>
         </div>

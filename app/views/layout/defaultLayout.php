@@ -8,6 +8,7 @@
 </head>
 <body> 
     <?php include __DIR__ . '/../partials/header.partial.php'; ?>
+    <?php include __DIR__ . '/../partials/flashes.partial.php'; ?>
     <main class="main-content">
         <?= $content ?>
     </main>

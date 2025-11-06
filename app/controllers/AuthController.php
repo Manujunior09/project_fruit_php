@@ -61,6 +61,7 @@ class AuthController extends Controller {
         $user = $this->userModel->findById($userId);
         $_SESSION['user'] = ['id' => $user['id'], 'username' => $user['username'], 'role' => $user['role']];
 
+        $this->setFlash('success', 'Inscription réussie. Bienvenue ' . $user['username'] . '!');
         header('Location: /');
         exit();
     }
@@ -88,6 +89,7 @@ class AuthController extends Controller {
 
         // Connecter l'utilisateur
         $_SESSION['user'] = ['id' => $user['id'], 'username' => $user['username'], 'role' => $user['role']];
+        $this->setFlash('success', 'Connexion réussie. Bonjour ' . $user['username'] . '!');
         header('Location: /');
         exit();
     }
@@ -95,6 +97,7 @@ class AuthController extends Controller {
     public function logout() {
         unset($_SESSION['user']);
         session_regenerate_id(true);
+        $this->setFlash('success', 'Vous avez été déconnecté.');
         header('Location: /login');
         exit();
     }
