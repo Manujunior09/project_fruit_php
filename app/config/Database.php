@@ -21,7 +21,7 @@ class Database {
         $dsn = "mysql:host=$this->db_host;dbname=$this->db_name;charset=utf8";
         
         try {
-            $conn = new \PDO($dsn, $this->db_username, $this->db_pass);
+            $conn = new \PDO($dsn, $this->db_user, $this->db_pass);
             $conn->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
             echo "Connexion à la base de données réussie !";
             return $conn;
@@ -34,6 +34,3 @@ class Database {
     }
 
 }
-
-
-
