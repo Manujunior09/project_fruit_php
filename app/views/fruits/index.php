@@ -1,8 +1,31 @@
 <?php
 $title = "Liste des Fruits Magiques";
 ?>
-<div class="fruits-container container">
+<div class="C container">
     <h1 class="rainbow-text">✨ Collection de Fruits Magiques ✨</h1>
+
+    <div>
+        <div class="filters">
+            <form method="GET" action="index.php" class="filter-form">
+                <div class="date-filters">
+                    <div class="form-group">
+                        <label for="date_debut">Date début:</label>
+                        <input type="date" id="date_debut" name="date_debut"
+                               value="<?php echo isset($_GET['date_debut']) ? htmlspecialchars($_GET['date_debut']) : ''; ?>">
+                    </div>
+                    <div class="form-group">
+                        <label for="date_fin">Date fin:</label>
+                        <input type="date" id="date_fin" name="date_fin"
+                               value="<?php echo isset($_GET['date_fin']) ? htmlspecialchars($_GET['date_fin']) : ''; ?>">
+                    </div>
+                    <button type="submit" class="button">Filtrer</button>
+                    <?php if (isset($_GET['date_debut']) || isset($_GET['date_fin'])): ?>
+                        <a href="index.php" class="button delete">Réinitialiser</a>
+                    <?php endif; ?>
+                </div>
+            </form>
+        </div>
+    </div>
     
     <?php if (isset($_SESSION['user']) && $_SESSION['user']['role'] === 'admin'): ?>
         <div class="text-center mb-4">

@@ -17,8 +17,8 @@ class AuthController extends Controller {
     public function register() {
         $this->view('auth/register', ['title' => 'Inscription']);
     }
+    
 
-    // Traite l'inscription
     public function registerPost() {
         $data = $_POST;
         $errors = [];
@@ -57,12 +57,11 @@ class AuthController extends Controller {
         $passwordHash = password_hash($password, PASSWORD_DEFAULT);
         $userId = $this->userModel->createUser($username, $email, $passwordHash);
 
-        // Auto-login après inscription
-        $user = $this->userModel->findById($userId);
-        $_SESSION['user'] = ['id' => $user['id'], 'username' => $user['username'], 'role' => $user['role']];
+        // $user = $this->userModel->findById($userId);
+        // $_SESSION['user'] = ['id' => $user['id'], 'username' => $user['username'], 'role' => $user['role']];
 
-        $this->setFlash('success', 'Inscription réussie. Bienvenue ' . $user['username'] . '!');
-        header('Location: /');
+        $this->setFlash('success', 'Inscription réussie. Veuillez vous connecter  ');
+        header('Location: /login');
         exit();
     }
 
