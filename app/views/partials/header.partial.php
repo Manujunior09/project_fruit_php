@@ -1,5 +1,5 @@
 <header class="header-main">
-    <h2>La Boutique des Fruits Magiques</h2>
+    <h1 class="rainbow-text">La Boutique des Fruits Magiques de MJ</h1>
     <nav>
         <?php if (isset($_SESSION['user'])): ?>
             <span>Bonjour, <?= htmlspecialchars($_SESSION['user']['username']) ?> (<?= htmlspecialchars($_SESSION['user']['role']) ?>)</span>

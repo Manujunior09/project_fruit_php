@@ -29,9 +29,14 @@ $title = "Ajouter un Fruit";
                 </div>
                 <div class="form-group">
                     <label for="image" class="form-label">Image (PNG, JPG):</label>
-                    <input type="file" id="image" name="image" class="form-control" accept=".png, .jpg, .jpeg">
+                    <input type="file" id="image" name="image" class="form-control" accept=".png, .jpg, .jpeg" value="1000000">
+                    <?php if (isset($errors['image'])): ?>
+                        <p class="form-error"><?= $errors['image'] ?></p>
+                    <?php endif; ?>
                 </div>
                 <button type="submit" class="btn btn--primary btn--full-width">Ajouter</button>
+
+                <a href="/" class="btn btn-secondary">Annuler</a>
             </form>
         </div>
     </div>

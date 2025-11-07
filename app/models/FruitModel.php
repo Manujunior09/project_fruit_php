@@ -12,9 +12,19 @@ class FruitModel {
         $this->connexion = new \config\Database();
     }
 
-    public function getAllFruits() {
+    public function getAllFruits($dateDebut = null, $dateFin = null) {
         $db = $this->connexion->connect();
-        $stmt = $db->query("SELECT * FROM fruits");
+        $sql = "SELECT * FROM fruits";
+        $params = [];
+
+        if ($dateDebut && $dateFin) {
+            $sql .= " WHERE date_ajout BETWEEN :date_debut AND :date_fin";
+            $params['date_debut'] = $dateDebut;
+            $params['date_fin'] = $dateFin . ' 23:59:59';
+        }
+
+        $stmt = $db->prepare($sql);
+        $stmt->execute($params);
         return $stmt->fetchAll(\PDO::FETCH_ASSOC);
     }
 

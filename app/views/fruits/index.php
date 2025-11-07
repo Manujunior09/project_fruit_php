@@ -2,11 +2,11 @@
 $title = "Liste des Fruits Magiques";
 ?>
 <div class="C container">
-    <h1 class="rainbow-text">✨ Collection de Fruits Magiques ✨</h1>
+    <h2 class="rainbow-text">✨ Collection de Fruits Magiques ✨</h2>
 
     <div>
         <div class="filters">
-            <form method="GET" action="index.php" class="filter-form">
+            <form method="GET" action="/fruits" class="filter-form">
                 <div class="date-filters">
                     <div class="form-group">
                         <label for="date_debut">Date début:</label>
@@ -20,7 +20,7 @@ $title = "Liste des Fruits Magiques";
                     </div>
                     <button type="submit" class="button">Filtrer</button>
                     <?php if (isset($_GET['date_debut']) || isset($_GET['date_fin'])): ?>
-                        <a href="index.php" class="button delete">Réinitialiser</a>
+                        <a href="/fruits" class="button delete">Réinitialiser</a>
                     <?php endif; ?>
                 </div>
             </form>

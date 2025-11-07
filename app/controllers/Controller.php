@@ -14,7 +14,6 @@ class Controller {
 
     }
 
-    // Authentication helpers
     protected function isAuthenticated(): bool {
         return isset($_SESSION['user']) && !empty($_SESSION['user']['id']);
     }
@@ -38,14 +37,12 @@ class Controller {
     protected function requireAdmin() {
         $this->requireAuth();
         if (!$this->isAdmin()) {
-            // Afficher la page 403 en utilisant la vue pour conserver le layout
             http_response_code(403);
             $this->view('errors/403', ['title' => 'Accès refusé']);
             exit();
         }
     }
 
-    // Flash message helpers
     protected function setFlash(string $type, string $message): void {
         if (!isset($_SESSION['flash'])) {
             $_SESSION['flash'] = [];

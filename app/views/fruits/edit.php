@@ -38,6 +38,9 @@ $title = "Modifier le Fruit";
                         </div>
                     <?php endif; ?>
                     <input type="file" id="image" name="image" class="form-control" accept=".png, .jpg, .jpeg">
+                    <?php if (isset($errors['image'])): ?>
+                        <p class="form-error"><?= $errors['image'] ?></p>
+                    <?php endif; ?>
                 </div>
                 <button type="submit" class="btn btn--primary btn--full-width">Mettre à jour</button>
             </form>

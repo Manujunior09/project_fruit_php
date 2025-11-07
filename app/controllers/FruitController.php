@@ -17,9 +17,30 @@ class FruitController extends Controller {
     public function index() {
         // Accessible uniquement aux utilisateurs connectés
         $this->requireAuth();
-        $fruits = $this->fruitModel->getAllFruits();
-        $this->view('fruits/index', ['fruits' => $fruits, 'title' => 'Accueil des Fruits']);
 
+        $dateDebut = isset($_GET['date_debut']) ? $_GET['date_debut'] : null;
+        $dateFin = isset($_GET['date_fin']) ? $_GET['date_fin'] : null;
+
+        // Validation des dates
+        if ($dateDebut && $dateFin) {
+            $dateDebutObj = \DateTime::createFromFormat('Y-m-d', $dateDebut);
+            $dateFinObj = \DateTime::createFromFormat('Y-m-d', $dateFin);
+            
+            if ($dateDebutObj && $dateFinObj && $dateDebutObj > $dateFinObj) {
+                // Si la date de début est après la date de fin, on les inverse
+                $temp = $dateDebut;
+                $dateDebut = $dateFin;
+                $dateFin = $temp;
+            }
+        }
+
+        $fruits = $this->fruitModel->getAllFruits($dateDebut, $dateFin);
+        $this->view('fruits/index', [
+            'fruits' => $fruits,
+            'title' => 'Accueil des Fruits',
+            'dateDebut' => $dateDebut,
+            'dateFin' => $dateFin
+        ]);
     }
 
     public function show($id) {
@@ -28,7 +49,7 @@ class FruitController extends Controller {
         $fruit = $this->fruitModel->getFruitById($id);
         if (!$fruit) {
             http_response_code(404);
-            $this->view('fruits/404', ['title' => 'Fruit non trouvé']);
+            $this->view('errors/404', ['title' => 'Fruit non trouvé']);
             return;
         }
        $this->view('fruits/show', ['fruit' => $fruit, 'title' => 'Détail du Fruit']);
@@ -41,20 +62,17 @@ class FruitController extends Controller {
     }
 
     public function realCreate() {
-        // Seuls les admins peuvent créer
         $this->requireAdmin();
 
         $errors = [];
         $data = $_POST;
 
-        // --- Début de la validation ---
         if (!isset($data['prix']) || !is_numeric($data['prix']) || (float)$data['prix'] <= 0) {
             $errors['prix'] = 'Le prix doit être un nombre positif.';
         }
         if (empty(trim($data['nom']))) {
             $errors['nom'] = 'Le nom du fruit ne peut pas être vide.';
         }
-        // --- Fin de la validation ---
 
         if (!empty($errors)) {
             // Si des erreurs sont trouvées, on recharge la vue du formulaire avec les erreurs et les données saisies
@@ -62,14 +80,45 @@ class FruitController extends Controller {
             return;
         }
 
-        // TODO: Gérer l'upload de l'image pour la création
+        // Limite de taille pour les fichiers uploadés (1 Mo)
+        $taille_max = 1000000; // octets
+
+        // Préparer la clé image pour éviter les notices dans le modèle
+        $data['image'] = null;
+
+        // Gérer l'upload d'image si fourni
+        if (isset($_FILES['image']) && $_FILES['image']['error'] !== UPLOAD_ERR_NO_FILE) {
+            if ($_FILES['image']['error'] !== UPLOAD_ERR_OK) {
+                $errors['image'] = 'Erreur lors du téléversement de l\'image.';
+            } elseif ($_FILES['image']['size'] > $taille_max) {
+                $errors['image'] = 'Le fichier est trop volumineux (max 1 Mo).';
+            } else {
+                $uploadDir = __DIR__ . '/../public/uploads/';
+                if (!is_dir($uploadDir)) {
+                    mkdir($uploadDir, 0777, true);
+                }
+                $extension = pathinfo($_FILES['image']['name'], PATHINFO_EXTENSION);
+                $imageName = uniqid('fruit_', true) . '.' . $extension;
+                $uploadFile = $uploadDir . $imageName;
+                if (move_uploaded_file($_FILES['image']['tmp_name'], $uploadFile)) {
+                    $data['image'] = $imageName;
+                } else {
+                    $errors['image'] = 'Impossible de déplacer le fichier uploadé.';
+                }
+            }
+        }
+
+        if (!empty($errors)) {
+            $this->view('fruits/create', ['data' => $data, 'errors' => $errors, 'title' => 'Ajouter un Fruit']);
+            return;
+        }
+
         $newFruitId = $this->fruitModel->addFruit($data);
         header('Location: /fruits/' . $newFruitId);
         exit();
     }
 
     public function edit($id) {
-        // Seuls les admins peuvent modifier
         $this->requireAdmin();
 
         $fruit = $this->fruitModel->getFruitById($id);
@@ -82,7 +131,6 @@ class FruitController extends Controller {
     }
 
     public function update($id) {
-        // Seuls les admins peuvent modifier
         $this->requireAdmin();
 
         $errors = [];
@@ -108,25 +156,42 @@ class FruitController extends Controller {
         $oldImageName = null;
 
         // 1. Vérifier si une nouvelle image est téléversée et valide
-        if (isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
-            // On récupère d'abord les infos du fruit actuel pour connaître l'ancienne image
-            $currentFruit = $this->fruitModel->getFruitById($id);
-            $oldImageName = $currentFruit['image'] ?? null;
+        if (isset($_FILES['image']) && $_FILES['image']['error'] !== UPLOAD_ERR_NO_FILE) {
+            // Limite de taille pour les fichiers uploadés (1 Mo)
+            $taille_max = 1000000; // octets
 
-            $uploadDir = __DIR__ . '/../public/uploads/';
-            if (!is_dir($uploadDir)) {
-                mkdir($uploadDir, 0777, true);
-            }
-            
-            // 2. Générer un nom de fichier unique
-            $extension = pathinfo($_FILES['image']['name'], PATHINFO_EXTENSION);
-            $imageName = uniqid('fruit_', true) . '.' . $extension;
-            $uploadFile = $uploadDir . $imageName;
+            if ($_FILES['image']['error'] !== UPLOAD_ERR_OK) {
+                $errors['image'] = 'Erreur lors du téléversement de l\'image.';
+            } elseif ($_FILES['image']['size'] > $taille_max) {
+                $errors['image'] = 'Le fichier est trop volumineux (max 1 Mo).';
+            } else {
+                // On récupère d'abord les infos du fruit actuel pour connaître l'ancienne image
+                $currentFruit = $this->fruitModel->getFruitById($id);
+                $oldImageName = $currentFruit['image'] ?? null;
 
-            // 3. Déplacer le fichier
-            if (move_uploaded_file($_FILES['image']['tmp_name'], $uploadFile)) {
-                $data['image'] = $imageName; // Ajouter le nouveau nom d'image aux données à mettre à jour
+                $uploadDir = __DIR__ . '/../public/uploads/';
+                if (!is_dir($uploadDir)) {
+                    mkdir($uploadDir, 0777, true);
+                }
+                // 2. Générer un nom de fichier unique
+                $extension = pathinfo($_FILES['image']['name'], PATHINFO_EXTENSION);
+                $imageName = uniqid('fruit_', true) . '.' . $extension;
+                $uploadFile = $uploadDir . $imageName;
+
+                // 3. Déplacer le fichier
+                if (move_uploaded_file($_FILES['image']['tmp_name'], $uploadFile)) {
+                    $data['image'] = $imageName; // 
+                } else {
+                    $errors['image'] = 'Impossible de déplacer le fichier uploadé.';
+                }
             }
+        }
+
+        if (!empty($errors)) {
+            // Recharger la vue d'édition avec les erreurs et les données saisies
+            $fruit = $this->fruitModel->getFruitById($id);
+            $this->view('fruits/edit', ['fruit' => array_merge($fruit, $data), 'errors' => $errors, 'title' => 'Modifier le Fruit']);
+            return;
         }
 
         $this->fruitModel->updateFruit($id, $data);
@@ -141,7 +206,6 @@ class FruitController extends Controller {
     }
 
     public function delete($id) {
-        // Seuls les admins peuvent supprimer
         $this->requireAdmin();
 
         $this->fruitModel->deleteFruit($id);
